@@ -1,9 +1,7 @@
 from flask import Blueprint
-from User.views import hello_world, login, get_users, add_user
+from User.views import GetUser, AddUser, Login
 
 my_view = Blueprint('my_view', __name__)
-my_view.add_url_rule('/home', view_func=hello_world, methods=['GET', 'POST'])
-my_view.add_url_rule('/', view_func=hello_world, methods=['GET', 'POST'])
-my_view.add_url_rule("/login/", view_func=login, methods=['GET', 'POST'])
-my_view.add_url_rule("/user/", view_func=get_users, methods=['GET', 'POST'])
-my_view.add_url_rule("/add/user/", view_func=add_user, methods=['POST'])
+my_view.add_url_rule("/login/", view_func=Login.as_view('login_view'))
+my_view.add_url_rule("/get/users/", view_func=GetUser.as_view('get_users'))
+my_view.add_url_rule("/add/user/", view_func=AddUser.as_view('add_users'))
