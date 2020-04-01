@@ -1,9 +1,40 @@
+from functools import wraps
+
 import flask
 from flask import jsonify, request, Response
 from flask.views import View, MethodView
 from flask_api import status
-from .models import User
+from .models import User, Token
 import jwt
+
+
+def token_required(f):
+
+    @wraps(f)
+    def decorator(*args, **kwargs):
+
+        token = None
+        if 'x-access-tokens' in request.headers:
+            token = request.headers['x-access-tokens']
+
+        if not token:
+            return jsonify({
+                'message': 'Token Missing'
+            })
+
+        try:
+            from app import app
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms='HS256')
+            user = Token(key=data['key'])
+
+        except Exception as e:
+            return jsonify({
+                'message': 'token is invalid'
+            })
+
+        return f(user, *args, **kwargs)
+
+    return decorator
 
 
 class GetUser(MethodView):
