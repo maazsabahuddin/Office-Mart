@@ -1,5 +1,5 @@
 from flask import Blueprint
-from User.views import GetUser, AddUser, Login
+from User.views import GetUser, AddUser, Login, A
 
 my_view = Blueprint('my_view', __name__)
 my_view.add_url_rule("/login/", view_func=Login.as_view('login_view'))
