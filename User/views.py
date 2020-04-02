@@ -4,7 +4,7 @@ import flask
 from flask import jsonify, request, Response
 from flask.views import View, MethodView
 from flask_api import status
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 import datetime
 import jwt
 from .models import User, Token
@@ -29,6 +29,11 @@ def token_required(f):
             from app import app
             data = jwt.decode(token, app.config['SECRET_KEY'], algorithms='HS256')
             token_obj = Token.objects(key=data.get('key')).first()
+            if not token_obj:
+                return jsonify({
+                    'status': status.HTTP_401_UNAUTHORIZED,
+                    'message': 'Unauthorized attempt.'
+                })
 
         except Exception as e:
             return jsonify({
@@ -129,7 +134,7 @@ class Login(MethodView):
             payload = request.get_json()
 
             user = User.objects(phone_number=payload['email_or_phone']).first()
-            if not user:
+            if check_password_hash(user.password, payload.get('password')):
                 return jsonify({
                     'status': status.HTTP_404_NOT_FOUND,
                     'message': 'Invalid Credentials',
@@ -161,7 +166,6 @@ class Login(MethodView):
                     'message': 'Account Successfully created.',
                 })
 
-
         except Exception as e:
             return jsonify({
                 'status': status.HTTP_400_BAD_REQUEST,
@@ -174,20 +178,15 @@ class Logout(MethodView):
     @token_required
     def get(self, token_obj, **kwargs):
         try:
-            token_remove = token_obj.delete()
-            if token_remove:
-                return jsonify({
-                    'status': status.HTTP_200_OK,
-                    'message': 'Logged Out!',
-                })
+            token_obj.delete()
+            return jsonify({
+                'status': status.HTTP_200_OK,
+                'message': 'Logged Out!',
+            })
+
+        except ValueError as e:
             return jsonify({
                 'status': status.HTTP_200_OK,
                 'message': 'Unable to Logout',
-            })
-
-        except Exception as e:
-            return jsonify({
-                'status': status.HTTP_200_OK,
-                'message': str(e),
             })
 
