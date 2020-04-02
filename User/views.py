@@ -11,7 +11,7 @@ from .models import User, Token
 from .models import local_timezone_conversion
 
 
-def token_required(f):
+def login_required(f):
 
     @wraps(f)
     def decorator(*args, **kwargs):
@@ -175,7 +175,7 @@ class Login(MethodView):
 
 class Logout(MethodView):
 
-    @token_required
+    @login_required
     def get(self, token_obj, **kwargs):
         try:
             token_obj.delete()
